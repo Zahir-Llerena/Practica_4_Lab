@@ -3,8 +3,9 @@
  PROYECTO: Practica 4 Laboratorio - Motor de Simulación Matemática (Desafío II)
  ESTUDIANTE: Arlington Zahir Llerena
  OBJETIVO ACADÉMICO: Comprender y aplicar Programación Orientada a Objetos (POO),
-                     gestión manual de memoria dinámica (punteros), flujos de archivos (I/O)
-                     y la implementación de Modela miento de red por enrutadores.
+                     gestión manual de memoria dinámica (punteros), flujos de
+                     archivos (I/O) y la implementación de Modela miento de red por
+                     enrutadores.
  =======================================================================================
 */
 
@@ -17,7 +18,7 @@
 #include <limits>
 #include <algorithm>
 
-// Valor numérico máximo para representar la ausencia de conexión (Infinito)
+
 const int INF = std::numeric_limits<int>::max();
 
 // ============================================================================
@@ -26,20 +27,18 @@ const int INF = std::numeric_limits<int>::max();
 class Enrutador
 {
 private:
-    std::string nombre; // Identificador único
-    std::map<std::string, int> enlaces; // Contenedor elegido para enlaces directos y costos
+    std::string nombre;
+    std::map<std::string, int> enlaces;
 
 public:
-    // Constructores y destructor originales
-    Enrutador() : nombre("") {}     // Constructor por defecto
-    Enrutador(const std::string& nom) : nombre(nom) {} // Constructor parametrizado
-    ~Enrutador() {}                 // Destructor
+    Enrutador() : nombre("") {}
+    Enrutador(const std::string& nom) : nombre(nom) {}
+    ~Enrutador() {}
 
-    // Getters propuestos al inicio
-    const std::string &getNombre() const { return nombre; }  // Getter para el nombre
-    const std::map<std::string, int> &getEnlaces() const { return enlaces; }   // Getter para los enlaces
+    
+    const std::string &getNombre() const { return nombre; }
+    const std::map<std::string, int> &getEnlaces() const { return enlaces; }
 
-    // Métodos de funcionamiento para gestionar los enlaces
     void agregarEnlace(const std::string &destino, int costo) {
         enlaces[destino] = costo;
     }
@@ -62,42 +61,39 @@ public:
 class Red
 {
 private:
-    std::map<std::string, Enrutador> enrutadores; // Contenedor para enrutadores de la red
+    std::map<std::string, Enrutador> enrutadores;
     
-    // Contenedor para guardar las tablas de enrutamiento de cada enrutador
     std::map<std::string, std::map<std::string, std::pair<int, std::vector<std::string>>>> tablasEnrutamiento;
 
 public:
-    // Constructores y destructor originales
-    Red() {}  // Constructor por defecto
-    ~Red() {} // Destructor
+     Red() {}
+    ~Red() {}
 
-    // Agregar un enrutador a la red
     void agregarEnrutador(const std::string &nombre) {
         if (enrutadores.find(nombre) == enrutadores.end()) {
             enrutadores[nombre] = Enrutador(nombre);
         }
-        actualizarTablas(); // Recalcular caminos
+        actualizarTablas();
     }
 
-    // Remover un enrutador de la red
+    
     void removerEnrutador(const std::string &nombre) {
         if (enrutadores.find(nombre) == enrutadores.end()) return;
         
-        // Purgar enlaces que apuntaban al nodo eliminado
+        
         for (auto &par : enrutadores) {
             par.second.eliminarEnlace(nombre);
         }
         enrutadores.erase(nombre);
-        actualizarTablas(); // Recalcular caminos
+        actualizarTablas();
     }
 
-    // Agregar un enlace entre dos enrutadores
+    
     void agregarEnlace(const std::string &origen, const std::string &destino, int costo) {
         if (enrutadores.find(origen) != enrutadores.end() && enrutadores.find(destino) != enrutadores.end()) {
             enrutadores[origen].agregarEnlace(destino, costo);
-            enrutadores[destino].agregarEnlace(origen, costo); // Enlaces simétricos
-            actualizarTablas(); // Recalcular caminos
+            enrutadores[destino].agregarEnlace(origen, costo);
+            actualizarTablas();
         }
     }
 
@@ -106,20 +102,20 @@ public:
         if (enrutadores.find(origen) != enrutadores.end() && enrutadores.find(destino) != enrutadores.end()) {
             enrutadores[origen].eliminarEnlace(destino);
             enrutadores[destino].eliminarEnlace(origen);
-            actualizarTablas(); // Recalcular caminos
+            actualizarTablas();
         }
     }
 
-    // Actualizar el costo de un enlace
+    
     void actualizarCosto(const std::string &origen, const std::string &destino, int nuevoCosto) {
         if (enrutadores.find(origen) != enrutadores.end() && enrutadores.find(destino) != enrutadores.end()) {
             enrutadores[origen].actualizarCosto(destino, nuevoCosto);
             enrutadores[destino].actualizarCosto(origen, nuevoCosto);
-            actualizarTablas(); // Recalcular caminos
+            actualizarTablas();
         }
     }
 
-    // Cargar la topología desde un archivo
+    
     void cargarDesdeArchivo(const std::string &nombreArchivo) {
         std::ifstream archivo(nombreArchivo);
         if (!archivo.is_open()) return;
@@ -142,10 +138,10 @@ public:
             }
         }
         archivo.close();
-        actualizarTablas(); // Recalcular caminos
+        actualizarTablas();
     }
 
-    // Algoritmo de Dijkstra para calcular rutas y costos
+    
     void dijkstra(const std::string &origen) {
         std::map<std::string, int> dists;
         std::map<std::string, std::string> padres;
@@ -154,7 +150,7 @@ public:
         for (const auto &p : enrutadores) dists[p.first] = INF;
         dists[origen] = 0;
 
-        // Ejecucion del for
+        
         for (size_t i = 0; i < enrutadores.size(); i++) {
             std::string u = "";
             int min_dist = INF;
@@ -183,7 +179,7 @@ public:
             if (dists[dest] == INF) {
                 tablasEnrutamiento[origen][dest] = {INF, {}};
             } else {
-                std::vector<std::string> cam; // Contenedor de la STL
+                std::vector<std::string> cam;
                 std::string act = dest;
                 while (act != origen) {
                     cam.push_back(act);
@@ -196,13 +192,13 @@ public:
         }
     }
 
-    // Actualizar todas las tablas de enrutamiento
+    
     void actualizarTablas() {
         tablasEnrutamiento.clear();
         for (const auto &p : enrutadores) dijkstra(p.first);
     }
 
-    // Obtener el costo entre dos enrutadores
+    
     int obtenerCosto(const std::string &origen, const std::string &destino) {
         if (tablasEnrutamiento.count(origen) && tablasEnrutamiento[origen].count(destino)) {
             return tablasEnrutamiento[origen][destino].first;
@@ -210,7 +206,7 @@ public:
         return INF;
     }
 
-    // Obtener el camino eficiente entre dos enrutadores
+    
     std::vector<std::string> obtenerCamino(const std::string &origen, const std::string &destino) {
         if (tablasEnrutamiento.count(origen) && tablasEnrutamiento[origen].count(destino)) {
             return tablasEnrutamiento[origen][destino].second;
@@ -218,7 +214,7 @@ public:
         return std::vector<std::string>();
     }
 
-    // Mostrar la tabla de enrutamiento para un enrutador específico
+    
     void mostrarTablaEnrutamiento(const std::string &nombre) {
         if (enrutadores.find(nombre) == enrutadores.end()) {
             std::cout << "El enrutador '" << nombre << "' no existe en la red.\n";
@@ -227,7 +223,7 @@ public:
         std::cout << "\nTABLA DE ENRUTAMIENTO: " << nombre << "\nDestino\tCosto\tCamino Eficiente\n";
         for (const auto &par : tablasEnrutamiento[nombre]) {
             std::cout << par.first << "\t" << (par.second.first == INF ? "INF" : std::to_string(par.second.first)) << "\t";
-            // Ejecucion del for
+            
             for (size_t i = 0; i < par.second.second.size(); i++)
                 std::cout << par.second.second[i] << (i == par.second.second.size() - 1 ? "" : " -> ");
             std::cout << "\n";
@@ -239,6 +235,7 @@ public:
 // ============================================================================
 // BLOQUE 3: FUNCIONES DE INTERFAZ Y MANEJO DEL BUFFER (MAIN.CPP)
 // ============================================================================
+
 void limpiarBuffer() {
     std::cin.clear();
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -250,12 +247,11 @@ void esperarTecla() {
 #ifdef _WIN32
     std::system("cls"); // Limpia la pantalla en Windows
 #else
-    // Imprime saltos de línea para desplazar el texto anterior y dejar la pantalla limpia
     std::cout << "\n\n\n\n\n\n\n";
 #endif
 }
 
-
+// Invocacion del main
 int main() {
     Red red;
     std::string archivoInicial;
@@ -304,7 +300,7 @@ int main() {
             continue;
         }
         
-        limpiarBuffer(); // Purgar el '\n' inmediatamente
+        limpiarBuffer();
 
         std::string nombre, origen, destino, archivo;
         int costo;
@@ -413,3 +409,7 @@ int main() {
 
 // Hasta el momento se da a conocer el trabajo realizado. Estamos en un proceso de auditoria
 // Att: Zahir Llerena
+
+// Ruta de archivo .txt de la topologia de ruta:
+// /Users/zahir_llerena/My Drive/UdeA/Semestre_3/Informatica_II/Laboratorio/Practica_4_Lab/Code_L4/red_enrutadores.txt
+
