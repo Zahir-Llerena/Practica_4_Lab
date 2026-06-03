@@ -1,0 +1,8 @@
+# Topologia de Red - Practica 4 Informatica II
+# Formato: Origen,Destino,Costo
+A,B,4
+A,C,10
+A,D,5
+B,C,3
+B,D,1
+C,D,2

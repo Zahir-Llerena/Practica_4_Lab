@@ -1,7 +1,7 @@
 /*
  =======================================================================================
  PROYECTO: Practica 4 Laboratorio - Motor de Simulación Matemática (Desafío II)
- ESTUDIANTE: Arlington Zahir Llerena Martínez
+ ESTUDIANTE: Arlington Zahir Llerena
  OBJETIVO ACADÉMICO: Comprender y aplicar Programación Orientada a Objetos (POO),
                      gestión manual de memoria dinámica (punteros), flujos de archivos (I/O)
                      y la implementación de Modela miento de red por enrutadores.
@@ -235,3 +235,181 @@ public:
     }
 };
 
+
+// ============================================================================
+// BLOQUE 3: FUNCIONES DE INTERFAZ Y MANEJO DEL BUFFER (MAIN.CPP)
+// ============================================================================
+void limpiarBuffer() {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+}
+
+void esperarTecla() {
+    std::cout << "\nPresione Enter para continuar...";
+    std::cin.get();
+#ifdef _WIN32
+    std::system("cls"); // Limpia la pantalla en Windows
+#else
+    // Imprime saltos de línea para desplazar el texto anterior y dejar la pantalla limpia
+    std::cout << "\n\n\n\n\n\n\n";
+#endif
+}
+
+
+int main() {
+    Red red;
+    std::string archivoInicial;
+    bool archivoCargado = false;
+
+    std::cout << "==================================================\n";
+    std::cout << " BIENVENIDO AL SIMULADOR CENTRALIZADO DE REDES   \n";
+    std::cout << "==================================================\n";
+    
+    while (!archivoCargado) {
+        std::cout << "Por favor, ingrese la ruta del archivo de topologia (.txt):\n-> ";
+        std::getline(std::cin, archivoInicial);
+        
+        std::ifstream test(archivoInicial);
+        if (test.is_open()) {
+            test.close();
+            red.cargarDesdeArchivo(archivoInicial);
+            std::cout << "\n[OK]: Topologia inicializada correctamente.\n";
+            archivoCargado = true;
+            esperarTecla();
+        } else {
+            std::cout << "\n[ERROR]: No se pudo abrir el archivo. Verifique la ruta.\n\n";
+        }
+    }
+
+    int opcion;
+    do {
+        std::cout << "\n--- MENU SIMULADOR RED DE ENRUTADORES ---\n"
+                  << "1. Agregar enrutador\n"
+                  << "2. Remover enrutador\n"
+                  << "3. Agregar enlace\n"
+                  << "4. Eliminar enlace\n"
+                  << "5. Actualizar costo de enlace\n"
+                  << "6. Cargar topologia desde archivo\n"
+                  << "7. Mostrar tabla de enrutamiento\n"
+                  << "8. Obtener costo entre dos enrutadores\n"
+                  << "9. Obtener camino eficiente entre dos enrutadores\n"
+                  << "0. Salir\n"
+                  << "Seleccione una opcion: ";
+
+        if (!(std::cin >> opcion)) {
+            std::cout << "Error: Ingrese un valor numerico.\n";
+            limpiarBuffer();
+            esperarTecla();
+            opcion = -1;
+            continue;
+        }
+        
+        limpiarBuffer(); // Purgar el '\n' inmediatamente
+
+        std::string nombre, origen, destino, archivo;
+        int costo;
+
+        switch (opcion) {
+            case 1:
+                std::cout << "Nombre del enrutador: ";
+                std::getline(std::cin, nombre);
+                red.agregarEnrutador(nombre);
+                std::cout << "Operacion realizada.\n";
+                esperarTecla();
+                break;
+                
+            case 2:
+                std::cout << "Nombre del enrutador a remover: ";
+                std::getline(std::cin, nombre);
+                red.removerEnrutador(nombre);
+                std::cout << "Operacion realizada.\n";
+                esperarTecla();
+                break;
+                
+            case 3:
+                std::cout << "Origen: "; std::getline(std::cin, origen);
+                std::cout << "Destino: "; std::getline(std::cin, destino);
+                std::cout << "Costo: "; std::cin >> costo;
+                red.agregarEnlace(origen, destino, costo);
+                std::cout << "Operacion realizada.\n";
+                limpiarBuffer();
+                esperarTecla();
+                break;
+                
+            case 4:
+                std::cout << "Origen: "; std::getline(std::cin, origen);
+                std::cout << "Destino: "; std::getline(std::cin, destino);
+                red.eliminarEnlace(origen, destino);
+                std::cout << "Operacion realizada.\n";
+                esperarTecla();
+                break;
+                
+            case 5:
+                std::cout << "Origen: "; std::getline(std::cin, origen);
+                std::cout << "Destino: "; std::getline(std::cin, destino);
+                std::cout << "Nuevo Costo: "; std::cin >> costo;
+                red.actualizarCosto(origen, destino, costo);
+                std::cout << "Operacion realizada.\n";
+                limpiarBuffer();
+                esperarTecla();
+                break;
+                
+            case 6:
+                std::cout << "Ruta completa (.txt): ";
+                std::getline(std::cin, archivo);
+                red.cargarDesdeArchivo(archivo);
+                std::cout << "Operacion realizada.\n";
+                esperarTecla();
+                break;
+                
+            case 7:
+                std::cout << "Enrutador a consultar: ";
+                std::getline(std::cin, nombre);
+                red.mostrarTablaEnrutamiento(nombre);
+                esperarTecla();
+                break;
+                
+            case 8:
+                std::cout << "Origen: "; std::getline(std::cin, origen);
+                std::cout << "Destino: "; std::getline(std::cin, destino);
+                costo = red.obtenerCosto(origen, destino);
+                std::cout << "Costo: " << (costo == INF ? "INFINITO" : std::to_string(costo)) << "\n";
+                esperarTecla();
+                break;
+                
+            case 9:
+                std::cout << "Origen: "; std::getline(std::cin, origen);
+                std::cout << "Destino: "; std::getline(std::cin, destino);
+                {
+                    auto camino = red.obtenerCamino(origen, destino);
+                    if (camino.empty()) {
+                        std::cout << "Ruta no disponible.\n";
+                    } else {
+                        std::cout << "Camino: ";
+                        // Ejecucion del for
+                        for (size_t i = 0; i < camino.size(); i++)
+                            std::cout << camino[i] << (i == camino.size() - 1 ? "" : " -> ");
+                        std::cout << "\nCosto: " << red.obtenerCosto(origen, destino) << "\n";
+                    }
+                }
+                esperarTecla();
+                break;
+                
+            case 0:
+                std::cout << "Saliendo...\n";
+                break;
+                
+            default:
+                std::cout << "Opcion no valida.\n";
+                esperarTecla();
+                break;
+        }
+    } while (opcion != 0);
+
+    return 0;
+}
+
+
+
+// Hasta el momento se da a conocer el trabajo realizado. Estamos en un proceso de auditoria
+// Att: Zahir Llerena
